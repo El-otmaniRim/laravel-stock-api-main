@@ -27,10 +27,6 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-    Route::get('admin/orders', [AdminUserRoleController::class, 'allOrders']);
-
-
 // Admin routes
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::apiResource('products', ProductController::class);
@@ -38,8 +34,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('admin/{user}/remove-delivery', [AdminUserRoleController::class, 'removeDeliveryRole']);
     Route::delete('admin/users/{id}', [AdminUserRoleController::class, 'deleteUser']);
     Route::delete('admin/orders/{id}', [AdminUserRoleController::class, 'deleteOrder']);
+    Route::patch('/admin/orders/{id}/status', [AdminUserRoleController::class, 'updateOrderStatus']); 
+    Route::get('admin/delivery-users', [AdminUserRoleController::class, 'deliveryUsers']);
     Route::get('admin/users', [AdminUserRoleController::class, 'allUsers']);
-    Route::put('/admin/orders/{id}/status', [AdminUserRoleController::class, 'updateOrderStatus']); // PATCH -> PUT
+    Route::get('admin/orders', [AdminUserRoleController::class, 'allOrders']);
+    Route::patch('admin/orders/{order}/assign-delivery', [AdminUserRoleController::class, 'assignDeliveryToOrder']);
     Route::get('/pdf/users', [PDFController::class, 'users']);
     Route::get('/pdf/orders', [PDFController::class, 'orders']);
     Route::get('/pdf/products', [PDFController::class, 'products']);

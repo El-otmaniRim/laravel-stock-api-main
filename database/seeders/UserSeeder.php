@@ -51,5 +51,25 @@ class UserSeeder extends Seeder
             ]
         );
         $delivery->assignRole('delivery');
+
+        $delivery1 = User::updateOrCreate(
+            ['email' => 'delivry-1@gmail.com'],
+            [
+                'name' => 'Delivery',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $delivery1->assignRole('delivery');
+
+        $delivery2 = User::updateOrCreate(
+            ['email' => 'delivry-2@gmail.com'],
+            [
+                'name' => 'Delivery',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]
+        );
+        $delivery2->assignRole('delivery');
     }
 }

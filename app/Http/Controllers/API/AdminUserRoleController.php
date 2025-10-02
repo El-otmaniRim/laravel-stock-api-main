@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 
 class AdminUserRoleController extends Controller
 {
-    public function assignDeliveryRole($userId)
-    {
+
+    public function assignDeliveryRole($userId){
         $user = User::findOrFail($userId);
 
         if (!$user->hasRole('delivery')) {
@@ -24,6 +24,26 @@ class AdminUserRoleController extends Controller
         ]);
     }
 
+    // In your AdminUserRoleController or OrdersController
+
+    public function assignDeliveryToOrder(Request $request, $orderId){
+        $request->validate([
+            'livreurId' => 'required|exists:users,id',
+        ]);
+
+        $order = Order::findOrFail($orderId);
+
+        // Assign delivery person to order
+        $order->delivery_id = $request->livreurId;
+        $order->save();
+
+        return response()->json([
+            'message' => 'Delivery person assigned successfully.',
+            'order' => $order->load('livreur') // assuming you have a relation defined
+        ]);
+    }
+
+
     public function removeDeliveryRole($userId)
     {
         $user = User::findOrFail($userId);
@@ -35,6 +55,16 @@ class AdminUserRoleController extends Controller
         return response()->json([
             'message' => 'Delivery role removed from user.',
             'user' => $user->load('roles'),
+        ]);
+    }
+
+    public function deliveryUsers(){
+        $deliveryUsers = User::whereHas('roles', function ($query) {
+                $query->where('name', 'delivery');
+        })->with('roles')->get();
+
+        return response()->json([
+            'users' => $deliveryUsers
         ]);
     }
 
@@ -60,7 +90,6 @@ class AdminUserRoleController extends Controller
 
 }
 
-
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
@@ -74,8 +103,8 @@ class AdminUserRoleController extends Controller
         return response()->json(['message' => 'User deleted successfully.']);
     }
 
-    public function deleteOrder($id)
-    {
+    public function deleteOrder($id){
+
         $order = Order::findOrFail($id);
         $order->delete();
 
@@ -83,23 +112,23 @@ class AdminUserRoleController extends Controller
     }
 
 
-    public function updateOrderStatus(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|string|in:pending,confirmed,delivered,cancelled'
-    ]);
+    public function updateOrderStatus(Request $request, $id){
 
-    $order = Order::findOrFail($id);
+        $request->validate([
+            'status' => 'required|string|in:pending,processing,confirmed,delivered,cancelled'
+        ]);
 
-    if (!auth()->user()->hasRole('admin')) {
-        return response()->json(['message' => 'Unauthorized'], 403);
+        $order = Order::findOrFail($id);
+
+        if (!auth()->user()->hasRole('admin')) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $order->update(['status' => $request->status]);
+
+        return response()->json([
+            'message' => 'Order status updated successfully.',
+            'order' => new OrderResource($order)
+        ]);
     }
-
-    $order->update(['status' => $request->status]);
-
-    return response()->json([
-        'message' => 'Order status updated successfully.',
-        'order' => $order->load('items.product')
-    ]);
-}
 }

@@ -68,6 +68,44 @@ class AdminUserRoleController extends Controller
         ]);
     }
 
+     public function customerUsers(){
+        $customerUsers = User::whereHas('roles', function ($query) {
+                $query->where('name', 'customer');
+        })->with('roles')->get();
+
+        return response()->json([
+            'users' => $customerUsers
+        ]);
+    }
+
+    public function fournisseurUsers(){
+        $fournisseurUsers = User::whereHas('roles', function ($query) {
+                $query->where('name', 'supplier');
+        })->with('roles')->get();
+
+        return response()->json([
+            'users' => $fournisseurUsers
+        ]);
+    }
+
+ public function updateSupplier(Request $request, $id)
+    {
+           $supplier = User::findOrFail($id);
+
+            // validate (optional but recommended)
+            $data = $request->validate([
+                'name' => 'string|max:255',
+                'email' => 'email|max:255|unique:users,email,' . $id,
+                'phone' => 'nullable|string|max:20',
+                'address' => 'nullable|string|max:255',
+            ]);
+
+            $supplier->update($data);
+
+            return response()->json($supplier);
+    }
+
+
 
     public function allUsers()
     {

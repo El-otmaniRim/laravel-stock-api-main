@@ -9,7 +9,7 @@ class RoleSeeder extends Seeder
 {
     public function run()
     {
-        $roles = ['admin', 'delivery', 'customer'];
+        $roles = ['admin', 'delivery', 'customer','supplier'];
 
         foreach ($roles as $role) {
             if (!Role::where('name', $role)->exists()) {

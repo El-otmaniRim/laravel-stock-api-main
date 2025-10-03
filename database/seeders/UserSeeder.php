@@ -71,5 +71,28 @@ class UserSeeder extends Seeder
             ]
         );
         $delivery2->assignRole('delivery');
+
+
+        $supplier1 = User::updateOrCreate(
+            ['email' => 'supplier1@gmail.com'],
+            [
+                'name' => 'Supplier 1',
+                'password' => Hash::make('password123'),
+                'phone'=>'0621212121',
+                'email_verified_at' => now(),
+            ]
+        );
+        $supplier1->assignRole('supplier');
+
+        $delivery2 = User::updateOrCreate(
+            ['email' => 'supplier2@gmail.com'],
+            [
+                'name' => 'Supplier 2',
+                'password' => Hash::make('password123'),
+                'phone'=>'0621212121',
+                'email_verified_at' => now(),
+            ]
+        );
+        $delivery2->assignRole('supplier');
     }
 }

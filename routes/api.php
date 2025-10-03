@@ -27,9 +27,14 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('admin/customer-users', [AdminUserRoleController::class, 'customerUsers']);
+Route::get('admin/suppliers', [AdminUserRoleController::class, 'fournisseurUsers']);
+
+Route::apiResource('products', ProductController::class);
+Route::put('admin/suppliers/{id}', [AdminUserRoleController::class, 'updateSupplier']);
+
 // Admin routes
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
-    Route::apiResource('products', ProductController::class);
     Route::post('admin/{user}/assign-delivery', [AdminUserRoleController::class, 'assignDeliveryRole']);
     Route::post('admin/{user}/remove-delivery', [AdminUserRoleController::class, 'removeDeliveryRole']);
     Route::delete('admin/users/{id}', [AdminUserRoleController::class, 'deleteUser']);

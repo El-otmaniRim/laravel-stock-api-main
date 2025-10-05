@@ -36,6 +36,10 @@ Route::post('admin/suppliers', [AdminUserRoleController::class, 'addSupplier']);
 Route::get('admin/orders', [AdminUserRoleController::class, 'allOrders']);
 Route::get('admin/delivery-users', [AdminUserRoleController::class, 'deliveryUsers']);
 
+
+// routes/api.php
+Route::get('/admin/delivery-data', [OrderController::class, 'getDeliveryData']);
+
 // Admin routes
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::post('admin/{user}/assign-delivery', [AdminUserRoleController::class, 'assignDeliveryRole']);
@@ -50,7 +54,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('All_Products', [ProductController::class, 'index']); // Allow admin to get all products
 });
 Route::get('orders', [OrderController::class, 'index']);
-    Route::patch('/admin/orders/{id}/status', [AdminUserRoleController::class, 'updateOrderStatus']); 
+Route::patch('/admin/orders/{id}/status', [AdminUserRoleController::class, 'updateOrderStatus']); 
 
 // Delivery routes
 Route::middleware(['auth:sanctum', 'role:delivery'])->group(function () {

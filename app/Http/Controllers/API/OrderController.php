@@ -286,6 +286,62 @@ class OrderController extends Controller
         ]);
     }
 
+     public function getDeliveryData(Request $request)
+    {
+        // 1️⃣ Fetch delivery users (livreurs)
+        $deliveryUsers = User::role('delivery')->get(['id', 'name', 'email']);
+
+        // 2️⃣ Fetch customers
+        $customers = User::role('customer')->get(['id', 'name', 'email']);
+
+        // 3️⃣ Fetch orders with related data
+        $orders = Order::with(['items.product', 'client', 'payment'])->get()->map(function($order) {
+            return [
+                'id' => $order->id,
+                'orderNumber' => $order->orderNumber,
+                'type' => $order->type,
+                'clientId' => $order->client_id,
+                'clientName' => $order->client->name ?? 'Client inconnu',
+                'supplierId' => $order->supplier_id,
+                'supplierName' => $order->supplier->name ?? null,
+                'status' => $order->status,
+                'items' => $order->items->map(function($item){
+                    return [
+                        'id' => $item->id,
+                        'productId' => $item->product_id,
+                        'product' => [
+                            'id' => $item->product->id,
+                            'name' => $item->product->name,
+                            'description' => $item->product->description,
+                        ],
+                        'stock' => $item->stock,
+                        'unitPrice' => $item->unit_price,
+                        'total' => $item->total,
+                    ];
+                }),
+                'subtotal' => $order->subtotal,
+                'tax' => $order->tax,
+                'total' => $order->total,
+                'notes' => $order->notes,
+                'deliveryAddress' => $order->delivery_address,
+                'livreurId' => $order->livreur_id,
+                'createdAt' => $order->created_at,
+                'updatedAt' => $order->updated_at,
+                'payment' => $order->payment ? [
+                    'id' => $order->payment->id,
+                    'paymentMethod' => $order->payment->payment_method,
+                    'paymentStatus' => $order->payment->payment_status,
+                    'createdAt' => $order->payment->created_at,
+                ] : null
+            ];
+        });
+
+        return response()->json([
+            'deliveryUsers' => $deliveryUsers,
+            'customers' => $customers,
+            'orders' => $orders,
+        ]);
+    }
 
     /**
      * Assign a delivery person to an order

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Order;
 use App\Http\Resources\OrderResource;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 
 class AdminUserRoleController extends Controller
@@ -88,46 +89,72 @@ class AdminUserRoleController extends Controller
         ]);
     }
 
- public function updateSupplier(Request $request, $id)
-    {
-           $supplier = User::findOrFail($id);
+    public function updateSupplier(Request $request, $id)
+        {
+            $supplier = User::findOrFail($id);
 
-            // validate (optional but recommended)
-            $data = $request->validate([
-                'name' => 'string|max:255',
-                'email' => 'email|max:255|unique:users,email,' . $id,
-                'phone' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:255',
+                // validate (optional but recommended)
+                $data = $request->validate([
+                    'name' => 'string|max:255',
+                    'email' => 'email|max:255|unique:users,email,' . $id,
+                    'phone' => 'nullable|string|max:20',
+                    'address' => 'nullable|string|max:255',
+                ]);
+
+                $supplier->update($data);
+
+                return response()->json($supplier);
+        }
+        
+    public function addSupplier(Request $request)
+        {
+            // validate request
+            $validated = $request->validate([
+                'name'     => 'required|string|max:255',
+                'email'    => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:6',
+                'phone'    => 'nullable|string|max:20',
+                'address'  => 'nullable|string|max:255',
             ]);
 
-            $supplier->update($data);
+            // create user
+            $supplier = User::create([
+                'name'              => $validated['name'],
+                'email'             => $validated['email'],
+                'password'          => Hash::make($validated['password']),
+                'phone'             => $validated['phone'] ?? null,
+                'address'           => $validated['address'] ?? null,
+                'email_verified_at' => now(),
+            ]);
 
-            return response()->json($supplier);
+            // assign supplier role
+            $supplier->assignRole('supplier');
+
+            return response()->json([
+                'message'  => 'Supplier created successfully',
+                'supplier' => $supplier,
+            ], 201);
+        }
+
+        public function allUsers()
+        {
+            $users = User::with('roles')->get();
+
+            return response()->json([
+                'users' => $users
+            ]);
+        }
+
+    public function allOrders(){
+        $orders = Order::with([
+        'items.product:id,name,description',
+        'payment:id,order_id,payment_method,payment_status,created_at',
+        'user:id,name',         // eager load client
+        ])->get();
+
+        return OrderResource::collection($orders)->resolve();
+
     }
-
-
-
-    public function allUsers()
-    {
-        $users = User::with('roles')->get();
-
-        return response()->json([
-            'users' => $users
-        ]);
-    }
-
-     public function allOrders()
-{
-    $orders = Order::with([
-    'items.product:id,name,description',
-    'payment:id,order_id,payment_method,payment_status,created_at',
-    'user:id,name',         // eager load client
-    ])->get();
-
-    return OrderResource::collection($orders)->resolve();
-
-}
-
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
@@ -140,7 +167,6 @@ class AdminUserRoleController extends Controller
 
         return response()->json(['message' => 'User deleted successfully.']);
     }
-
     public function deleteOrder($id){
 
         $order = Order::findOrFail($id);
@@ -148,17 +174,15 @@ class AdminUserRoleController extends Controller
 
         return response()->json(['message' => 'Order deleted successfully.']);
     }
-
-
     public function updateOrderStatus(Request $request, $id){
 
         $request->validate([
-            'status' => 'required|string|in:pending,processing,confirmed,delivered,cancelled'
+            'status' => 'required|string'
         ]);
 
         $order = Order::findOrFail($id);
 
-        if (!auth()->user()->hasRole('admin')) {
+        if (!auth()->user()->hasRole('delivery')) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

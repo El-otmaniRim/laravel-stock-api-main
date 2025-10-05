@@ -10,7 +10,14 @@ class Order extends Model
     use HasFactory;
 
 
-    protected $fillable = ['user_id','status','delivery_id','total_price','type'];
+    protected $fillable = [
+    'user_id',
+    'status',
+    'delivery_id',
+    'total_price',
+    'scheduled_date',
+    'notes'
+    ];
 
     public function items()
     {
@@ -26,5 +33,11 @@ class Order extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    
+    // Delivery person relation
+    public function delivery()
+    {
+        return $this->belongsTo(User::class, 'delivery_id');
     }
 }
